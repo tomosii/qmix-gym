@@ -99,15 +99,15 @@ class QNet(nn.Module):
         self.hx_size = 32
         for agent_i in range(self.num_agents):
             n_obs = observation_space[agent_i].shape[0]
-            setattr(self, 'agent_feature_{}'.format(agent_i), nn.Sequential(nn.Linear(n_obs, 128),
+            setattr(self, "agent_feature_{}".format(agent_i), nn.Sequential(nn.Linear(n_obs, 128),
                                                                             nn.ReLU(),
                                                                             nn.Linear(
                                                                                 128, self.hx_size),
                                                                             nn.ReLU()))
             if recurrent:
-                setattr(self, 'agent_gru_{}'.format(agent_i),
+                setattr(self, "agent_gru_{}".format(agent_i),
                         nn.GRUCell(self.hx_size, self.hx_size))
-            setattr(self, 'agent_q_{}'.format(agent_i), nn.Linear(
+            setattr(self, "agent_q_{}".format(agent_i), nn.Linear(
                 self.hx_size, action_space[agent_i].n))
 
     def forward(self, obs, hidden):
@@ -115,14 +115,14 @@ class QNet(nn.Module):
         next_hidden = [torch.empty(
             obs.shape[0], 1, self.hx_size, )] * self.num_agents
         for agent_i in range(self.num_agents):
-            x = getattr(self, 'agent_feature_{}'.format(
+            x = getattr(self, "agent_feature_{}".format(
                 agent_i))(obs[:, agent_i, :])
             if self.recurrent:
-                x = getattr(self, 'agent_gru_{}'.format(
+                x = getattr(self, "agent_gru_{}".format(
                     agent_i))(x, hidden[:, agent_i, :])
                 next_hidden[agent_i] = x.unsqueeze(1)
             q_values[agent_i] = getattr(
-                self, 'agent_q_{}'.format(agent_i))(x).unsqueeze(1)
+                self, "agent_q_{}".format(agent_i))(x).unsqueeze(1)
 
         return torch.cat(q_values, dim=1), torch.cat(next_hidden, dim=1)
 
@@ -212,7 +212,7 @@ def main(env_name, lr, gamma, batch_size, buffer_limit, log_interval, max_episod
          update_target_interval, recurrent):
     # create env.
     env = Fruits()
-    test_env = Monitor(Fruits(), directory='recordings',
+    test_env = Monitor(Fruits(), directory="recordings",
                        video_callable=lambda episode_id: True, force=True)
     memory = ReplayBuffer(buffer_limit)
 
@@ -225,8 +225,8 @@ def main(env_name, lr, gamma, batch_size, buffer_limit, log_interval, max_episod
     mix_net_target = MixNet(env.observation_space, recurrent=recurrent)
     mix_net_target.load_state_dict(mix_net.state_dict())
 
-    optimizer = optim.Adam([{'params': q.parameters()}, {
-                           'params': mix_net.parameters()}], lr=lr)
+    optimizer = optim.Adam([{"params": q.parameters()}, {
+                           "params": mix_net.parameters()}], lr=lr)
 
     score = 0
     for episode_i in range(max_episodes):
@@ -260,50 +260,52 @@ def main(env_name, lr, gamma, batch_size, buffer_limit, log_interval, max_episod
             print("#{:<10}/{} episodes , avg train score : {:.1f}, test score: {:.1f} n_buffer : {}, eps : {:.1f}"
                   .format(episode_i, max_episodes, train_score, test_score, memory.size(), epsilon))
             if USE_WANDB:
-                wandb.log({'episode': episode_i, 'test-score': test_score,
-                           'buffer-size': memory.size(), 'epsilon': epsilon, 'train-score': train_score})
+                wandb.log({"episode": episode_i, "test-score": test_score,
+                           "buffer-size": memory.size(), "epsilon": epsilon, "train-score": train_score})
             score = 0
 
     env.close()
     test_env.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Lets gather arguments
     import argparse
 
-    parser = argparse.ArgumentParser(description='Qmix')
-    parser.add_argument('--env-name', required=False,
-                        default='Fruits-v0')
-    parser.add_argument('--seed', type=int, default=1, required=False)
-    parser.add_argument('--no-recurrent', action='store_true', default=False)
-    parser.add_argument('--max-episodes', type=int,
+    parser = argparse.ArgumentParser(description="Qmix")
+    parser.add_argument("--env-name", required=False,
+                        default="Fruits-v0")
+    parser.add_argument("--seed", type=int, default=1, required=False)
+    parser.add_argument("--no-recurrent", action="store_true", default=False)
+    parser.add_argument("--max-episodes", type=int,
                         default=10000, required=False)
 
     # Process arguments
     args = parser.parse_args()
 
-    kwargs = {'env_name': args.env_name,
-              'lr': 0.001,
-              'batch_size': 32,
-              'gamma': 0.99,
-              'buffer_limit': 50000,
-              'update_target_interval': 20,
-              'log_interval': 100,
-              'max_episodes': args.max_episodes,
-              'max_epsilon': 0.9,
-              'min_epsilon': 0.1,
-              'test_episodes': 5,
-              'warm_up_steps': 2000,
-              'update_iter': 10,
-              # if not recurrent, internally, we use chunk_size of 1 and no gru cell is used.
-              'chunk_size': 10,
-              'recurrent': not args.no_recurrent}
+    kwargs = {
+        "env_name": args.env_name,
+        "lr": 0.001,
+        "batch_size": 32,
+        "gamma": 0.99,
+        "buffer_limit": 50000,
+        "update_target_interval": 20,
+        "log_interval": 100,
+        "max_episodes": args.max_episodes,
+        "max_epsilon": 0.9,
+        "min_epsilon": 0.1,
+        "test_episodes": 5,
+        "warm_up_steps": 2000,
+        "update_iter": 10,
+        # if not recurrent, internally, we use chunk_size of 1 and no gru cell is used.
+        "chunk_size": 10,
+        "recurrent": not args.no_recurrent,
+    }
 
     if USE_WANDB:
         import wandb
 
-        run = wandb.init(project='qmix-gym',
-                         config={'algo': 'qmix', **kwargs})
+        run = wandb.init(project="qmix-gym",
+                         config={"algo": "qmix", **kwargs})
 
     main(**kwargs)

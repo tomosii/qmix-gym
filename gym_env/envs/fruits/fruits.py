@@ -32,7 +32,8 @@ class Fruits(gym.Env):
     Reference Paper : Value-Decomposition Networks For Cooperative Multi-Agent Learning (Section 4.2)
     ---
     """
-    metadata = {'render.modes': ['human', 'rgb_array']}
+    metadata = {'render.modes': [
+        'human', 'rgb_array'], 'video.frames_per_second': 3}
 
     def __init__(self, full_observable=False, step_cost=-0.01, max_steps=100, clock=False):
         # グリッドの形
@@ -51,7 +52,8 @@ class Fruits(gym.Env):
         self._add_clock = clock
 
         # 行動空間（[上,下,左,右,何もしない]の5種類が人数分）
-        self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])
+        self.action_space = MultiAgentActionSpace(
+            [spaces.Discrete(5) for _ in range(self.n_agents)])
 
         # 観測の最大値
         self._obs_high = np.ones(2 + (3 * 3 * 5) + (1 if clock else 0))
@@ -68,7 +70,8 @@ class Fruits(gym.Env):
                                                              for _ in range(self.n_agents)])
 
         # 各エージェントの初期位置
-        self.init_agent_pos = {0: [0, self._grid_shape[1] - 2], 1: [2, self._grid_shape[1] - 2]}
+        self.init_agent_pos = {
+            0: [0, self._grid_shape[1] - 2], 1: [2, self._grid_shape[1] - 2]}
 
         # 各エージェントの得られる報酬値
         self.agent_reward = {0: {'lemon': -10, 'apple': 10},
@@ -100,15 +103,19 @@ class Fruits(gym.Env):
         """
         エージェントを除くグリッドや果物の画像を生成
         """
-        self._base_img = draw_grid(self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill='white')
+        self._base_img = draw_grid(
+            self._grid_shape[0], self._grid_shape[1], cell_size=CELL_SIZE, fill='white')
         for row in range(self._grid_shape[0]):
             for col in range(self._grid_shape[1]):
                 if PRE_IDS['wall'] in self._full_obs[row][col]:
-                    fill_cell(self._base_img, (row, col), cell_size=CELL_SIZE, fill=WALL_COLOR, margin=0.05)
+                    fill_cell(self._base_img, (row, col),
+                              cell_size=CELL_SIZE, fill=WALL_COLOR, margin=0.05)
                 elif PRE_IDS['lemon'] in self._full_obs[row][col]:
-                    fill_cell(self._base_img, (row, col), cell_size=CELL_SIZE, fill=LEMON_COLOR, margin=0.05)
+                    fill_cell(self._base_img, (row, col),
+                              cell_size=CELL_SIZE, fill=LEMON_COLOR, margin=0.05)
                 elif PRE_IDS['apple'] in self._full_obs[row][col]:
-                    fill_cell(self._base_img, (row, col), cell_size=CELL_SIZE, fill=APPLE_COLOR, margin=0.05)
+                    fill_cell(self._base_img, (row, col),
+                              cell_size=CELL_SIZE, fill=APPLE_COLOR, margin=0.05)
 
     def __create_grid(self):
         """
@@ -141,7 +148,8 @@ class Fruits(gym.Env):
         fruit_total = self._grid_shape[0] * (self._grid_shape[1] - 2)
 
         # 半分リンゴ、半分レモンを並べた1行のリスト
-        all_fruits = [PRE_IDS['apple'] if (i < fruit_total // 2) else PRE_IDS['lemon'] for i in range(fruit_total)]
+        all_fruits = [PRE_IDS['apple'] if (
+            i < fruit_total // 2) else PRE_IDS['lemon'] for i in range(fruit_total)]
 
         # Numpy配列に変換してシャッフル
         shuffled_all_fruits = np.random.permutation(np.array(all_fruits))
@@ -221,7 +229,8 @@ class Fruits(gym.Env):
                             item[ITEM_ONE_HOT_INDEX['wall']] = 1
 
                         # One-hotベクトルを挿入
-                        _agent_i_neighbour[r - (pos[0] - 1)][c - (pos[1] - 1)] = item
+                        _agent_i_neighbour[r -
+                                           (pos[0] - 1)][c - (pos[1] - 1)] = item
 
             # 3x3x5の行列を1つの長いリストにする
             _agent_i_obs += _agent_i_neighbour.flatten().tolist()
@@ -239,7 +248,7 @@ class Fruits(gym.Env):
             # 全員分の観測を全員が受け取る
             _obs = np.array(_obs).flatten().tolist()
             _obs = [_obs for _ in range(self.n_agents)]
-        
+
         return _obs
 
     def reset(self):
@@ -315,9 +324,11 @@ class Fruits(gym.Env):
         エージェントの位置をグリッド上に反映
         """
         # 1つ前にエージェントがいた位置を空にする
-        self._full_obs[self.agent_prev_pos[agent_i][0]][self.agent_prev_pos[agent_i][1]] = PRE_IDS['empty']
+        self._full_obs[self.agent_prev_pos[agent_i][0]
+                       ][self.agent_prev_pos[agent_i][1]] = PRE_IDS['empty']
         # 現在のエージェントの位置にエージェントを配置（"A + エージェント番号"）
-        self._full_obs[self.agent_pos[agent_i][0]][self.agent_pos[agent_i][1]] = PRE_IDS['agent'] + str(agent_i + 1)
+        self._full_obs[self.agent_pos[agent_i][0]][self.agent_pos[agent_i]
+                                                   [1]] = PRE_IDS['agent'] + str(agent_i + 1)
 
     def step(self, agents_action):
         """
@@ -385,10 +396,13 @@ class Fruits(gym.Env):
         # 既にあるグリッド画像の上にエージェントを乗せる
         for agent_i in range(self.n_agents):
             # 1つ前と現在のマスを白く塗る
-            fill_cell(self._base_img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill='white', margin=0.05)
-            fill_cell(self._base_img, self.agent_prev_pos[agent_i], cell_size=CELL_SIZE, fill='white', margin=0.05)
+            fill_cell(
+                self._base_img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill='white', margin=0.05)
+            fill_cell(
+                self._base_img, self.agent_prev_pos[agent_i], cell_size=CELL_SIZE, fill='white', margin=0.05)
             # 自身の色の円
-            draw_circle(self._base_img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLORS[agent_i])
+            draw_circle(
+                self._base_img, self.agent_pos[agent_i], cell_size=CELL_SIZE, fill=AGENT_COLORS[agent_i])
             # エージェント番号
             write_cell_text(self._base_img, text=str(agent_i + 1), pos=self.agent_pos[agent_i], cell_size=CELL_SIZE,
                             fill='white', margin=0.4)
