@@ -33,7 +33,7 @@ class Fruits(gym.Env):
     ---
     """
     metadata = {'render.modes': [
-        'human', 'rgb_array'], 'video.frames_per_second': 3}
+        'human', 'rgb_array'], 'video.frames_per_second': 5}
 
     def __init__(self, full_observable=False, step_cost=-0.01, max_steps=100, clock=False):
         # グリッドの形

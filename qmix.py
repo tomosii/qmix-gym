@@ -9,7 +9,7 @@ import torch.optim as optim
 from gym_env.wrappers import Monitor
 from gym_env.envs.fruits.fruits import Fruits
 
-USE_WANDB = False  # if enabled, logs data on wandb server
+USE_WANDB = True  # if enabled, logs data on wandb server
 
 
 class ReplayBuffer:
@@ -278,7 +278,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=1, required=False)
     parser.add_argument("--no-recurrent", action="store_true", default=False)
     parser.add_argument("--max-episodes", type=int,
-                        default=10000, required=False)
+                        default=20000, required=False)
 
     # Process arguments
     args = parser.parse_args()
@@ -292,7 +292,7 @@ if __name__ == "__main__":
         "update_target_interval": 20,
         "log_interval": 100,
         "max_episodes": args.max_episodes,
-        "max_epsilon": 0.9,
+        "max_epsilon": 1.0,
         "min_epsilon": 0.1,
         "test_episodes": 5,
         "warm_up_steps": 2000,
@@ -305,7 +305,11 @@ if __name__ == "__main__":
     if USE_WANDB:
         import wandb
 
-        run = wandb.init(project="qmix-gym",
-                         config={"algo": "qmix", **kwargs})
+        run = wandb.init(
+            project="qmix-gym",
+            entity="lighthouse117",
+            config={"algo": "qmix", **kwargs},
+            monitor_gym=True
+        )
 
     main(**kwargs)
