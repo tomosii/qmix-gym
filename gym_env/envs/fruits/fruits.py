@@ -131,6 +131,31 @@ class Fruits(gym.Env):
 
         return _grid
 
+    def __create_random_grid(self):
+        """
+        ランダムに果物を配置したグリッドを生成
+        """
+        _grid = []
+
+        # 果物の合計数（右の2列以外）
+        fruit_total = self._grid_shape[0] * (self._grid_shape[1] - 2)
+
+        # 半分リンゴ、半分レモンを並べた1行のリスト
+        all_fruits = [PRE_IDS['apple'] if (i < fruit_total // 2) else PRE_IDS['lemon'] for i in range(fruit_total)]
+
+        # Numpy配列に変換してシャッフル
+        shuffled_all_fruits = np.random.permutation(np.array(all_fruits))
+
+        # 1行の配列をグリッドの行列に成形
+        _grid = shuffled_all_fruits.reshape(self._grid_shape[0], -1).tolist()
+
+        # 各行の右端2列に空のマスを追加
+        for row in _grid:
+            row.extend([PRE_IDS['empty'] for _ in range(2)])
+            # a = row + emp
+
+        return _grid
+
     def __init_full_obs(self):
         """
         グリッドや果物などのグローバル状態を初期化
@@ -296,7 +321,7 @@ class Fruits(gym.Env):
     def step(self, agents_action):
         """
         行動を環境に出力してタイムステップを1つ進める
-        [各エージェントの観測, 報酬, 終了かどうか, 追加情報]
+        [各エージェントの観測, 報酬, 終了フラグ, 追加情報（残り個数）]
         """
         # 人数分の行動が入力されているかチェック
         assert len(agents_action) == self.n_agents
@@ -349,6 +374,7 @@ class Fruits(gym.Env):
             self.steps_beyond_done += 1
             rewards = [0 for _ in range(self.n_agents)]
 
+        # [各エージェントの観測, 報酬, 終了フラグ, 追加情報（残り個数）]
         return self.get_agent_obs(), rewards, self._agent_dones, {'food_count': self._food_count}
 
     def render(self, mode='human'):
