@@ -165,7 +165,8 @@ class Fruits(gym.Env):
         self.agent_prev_pos = copy.copy(self.init_agent_pos)
 
         # 果物を配置したグリッドを生成
-        self._full_obs = self.__create_grid()
+        # self._full_obs = self.__create_grid()
+        self._full_obs = self.__create_random_grid()
 
         # グリッドに各エージェントを配置
         for agent_i in range(self.n_agents):

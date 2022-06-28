@@ -1,12 +1,13 @@
 import collections
-import gym
+# import gym
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-# from gym_env.wrappers import Monitor
-from ma_gym.wrappers import Monitor
+
+from gym_env.wrappers import Monitor
+from gym_env.envs.fruits.fruits import Fruits
 
 USE_WANDB = False  # if enabled, logs data on wandb server
 
@@ -210,8 +211,8 @@ def main(env_name, lr, gamma, batch_size, buffer_limit, log_interval, max_episod
          max_epsilon, min_epsilon, test_episodes, warm_up_steps, update_iter, chunk_size,
          update_target_interval, recurrent):
     # create env.
-    env = gym.make(env_name)
-    test_env = Monitor(gym.make(env_name), directory='recordings',
+    env = Fruits()
+    test_env = Monitor(Fruits(), directory='recordings',
                        video_callable=lambda episode_id: True, force=True)
     memory = ReplayBuffer(buffer_limit)
 
@@ -273,7 +274,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Qmix')
     parser.add_argument('--env-name', required=False,
-                        default='ma_gym:Checkers-v0')
+                        default='Fruits-v0')
     parser.add_argument('--seed', type=int, default=1, required=False)
     parser.add_argument('--no-recurrent', action='store_true', default=False)
     parser.add_argument('--max-episodes', type=int,
