@@ -57,7 +57,7 @@ register(
     entry_point='ma_gym.envs.pong_duel:PongDuel',
 )
 
-# ================================ My Environments ================================
+# ================================ My Custom Environments ================================
 
 register(
     id="Fruits-v0",

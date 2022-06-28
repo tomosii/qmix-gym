@@ -30,6 +30,9 @@ def get_cell_sizes(cell_size: Union[int, list, tuple]):
 
 
 def draw_grid(rows, cols, cell_size=50, fill='black', line_color='black'):
+    """
+    グリッドを描画
+    """
     cell_size_x, cell_size_y = get_cell_sizes(cell_size)
 
     width = cols * cell_size_x
