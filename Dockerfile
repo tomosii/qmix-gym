@@ -7,11 +7,8 @@ RUN apt-key del 7fa2af80 && \
 
 RUN apt-get update
 RUN apt-get install -y python3 python3-pip
-RUN apt-get install -y libjpeg-dev zlib1g-dev
-RUN apt-get install -y ffmpeg
-RUN pip3 install torch torchvision torchaudio
-RUN pip3 install gym==0.19.0
-RUN pip3 install wandb
+RUN apt-get install -y libjpeg-dev zlib1g-dev ffmpeg
+RUN pip3 install torch torchvision torchaudio gym==0.19.0 wandb
 
 WORKDIR /work
 
