@@ -192,7 +192,7 @@ class Fruits(gym.Env):
             # 最初にランダム配置を生成して、以降同じものを使用する
             if self.test_grid is None:
                 self.test_grid = self.__create_random_grid()
-            self._full_obs = self.test_grid
+            self._full_obs = copy.deepcopy(self.test_grid)
 
         # グリッドに各エージェントを配置
         for agent_i in range(self.n_agents):
