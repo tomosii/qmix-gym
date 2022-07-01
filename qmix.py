@@ -189,9 +189,9 @@ def train(q, q_target, mix_net, mix_net_target, memory, optimizer, gamma, batch_
         optimizer.step()
 
 
-def test(env, num_episodes, q):
+def test(envs, num_episodes, q):
     score = 0
-    for episode_i in range(num_episodes):
+    for env in envs:
         state = env.reset()
         done = [False for _ in range(env.n_agents)]
         with torch.no_grad():
@@ -211,9 +211,8 @@ def main(env_name, lr, gamma, batch_size, buffer_limit, log_interval, max_episod
          max_epsilon, min_epsilon, test_episodes, warm_up_steps, update_iter, chunk_size,
          update_target_interval, recurrent):
     # create env.
-    env = Fruits()
-    test_env = Monitor(Fruits(), directory="recordings",
-                       video_callable=lambda episode_id: True, force=True)
+    env = Fruits(grid_mode="random")
+    test_envs = [Monitor(Fruits(grid_mode="random_test"), directory="recordings", video_callable=lambda episode_id: True, force=True) for _ in range(test_episodes)]
     memory = ReplayBuffer(buffer_limit)
 
     # create networks
@@ -255,7 +254,7 @@ def main(env_name, lr, gamma, batch_size, buffer_limit, log_interval, max_episod
             mix_net_target.load_state_dict(mix_net.state_dict())
 
         if episode_i % log_interval == 0 and episode_i != 0:
-            test_score = test(test_env, test_episodes, q)
+            test_score = test(test_envs, test_episodes, q)
             train_score = score / log_interval
             print("#{:<10}/{} episodes , avg train score : {:.1f}, test score: {:.1f} n_buffer : {}, eps : {:.1f}"
                   .format(episode_i, max_episodes, train_score, test_score, memory.size(), epsilon))
@@ -265,7 +264,8 @@ def main(env_name, lr, gamma, batch_size, buffer_limit, log_interval, max_episod
             score = 0
 
     env.close()
-    test_env.close()
+    for test_env in test_envs:
+        test_env.close()
 
 
 if __name__ == "__main__":
@@ -278,14 +278,14 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=1, required=False)
     parser.add_argument("--no-recurrent", action="store_true", default=False)
     parser.add_argument("--max-episodes", type=int,
-                        default=20000, required=False)
+                        default=25000, required=False)
 
     # Process arguments
     args = parser.parse_args()
 
     kwargs = {
         "env_name": args.env_name,
-        "lr": 0.001,
+        "lr": 0.0001,
         "batch_size": 32,
         "gamma": 0.99,
         "buffer_limit": 50000,
@@ -294,7 +294,7 @@ if __name__ == "__main__":
         "max_episodes": args.max_episodes,
         "max_epsilon": 1.0,
         "min_epsilon": 0.1,
-        "test_episodes": 5,
+        "test_episodes": 3,
         "warm_up_steps": 2000,
         "update_iter": 10,
         # if not recurrent, internally, we use chunk_size of 1 and no gru cell is used.

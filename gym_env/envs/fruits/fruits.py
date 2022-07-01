@@ -35,7 +35,7 @@ class Fruits(gym.Env):
     metadata = {'render.modes': [
         'human', 'rgb_array'], 'video.frames_per_second': 5}
 
-    def __init__(self, full_observable=False, step_cost=-0.01, max_steps=100, clock=False):
+    def __init__(self, full_observable=False, step_cost=-0.01, max_steps=100, clock=False, grid_mode="check"):
         # グリッドの形
         self._grid_shape = (3, 8)
         # エージェント数
@@ -85,6 +85,11 @@ class Fruits(gym.Env):
         self._food_count = None  # 残っている果物の数
         self._total_episode_reward = None  # 報酬の総和
         self.steps_beyond_done = None  # エラー用
+
+        # グリッドの配置（市松，ランダム，テスト用）
+        self.grid_mode = grid_mode
+        # 最初に生成したランダムグリッドを保持する（テスト用）
+        self.test_grid = None
 
         # 乱数のシードを初期化
         self.seed()
@@ -173,8 +178,21 @@ class Fruits(gym.Env):
         self.agent_prev_pos = copy.copy(self.init_agent_pos)
 
         # 果物を配置したグリッドを生成
-        # self._full_obs = self.__create_grid()
-        self._full_obs = self.__create_random_grid()
+
+        if self.grid_mode not in ("check", "random", "random_test"):
+            logger.error("grid_mode is invalid.")
+
+        if self.grid_mode == "check":
+            # 市松模様
+            self._full_obs = self.__create_grid()
+        elif self.grid_mode == "random":
+            # resetするたびにランダムな配置を生成
+            self._full_obs = self.__create_random_grid()
+        elif self.grid_mode == "random_test":
+            # 最初にランダム配置を生成して、以降同じものを使用する
+            if self.test_grid is None:
+                self.test_grid = self.__create_random_grid()
+            self._full_obs = self.test_grid
 
         # グリッドに各エージェントを配置
         for agent_i in range(self.n_agents):
