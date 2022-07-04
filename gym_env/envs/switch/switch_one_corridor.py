@@ -19,26 +19,38 @@ class Switch(gym.Env):
     def __init__(self, full_observable: bool = False, step_cost: float = 0, n_agents: int = 4, max_steps: int = 50,
                  clock: bool = True):
         assert 2 <= n_agents <= 4, 'Number of Agents has to be in range [2,4]'
+        # グリッドの形
         self._grid_shape = (3, 7)
+        # エージェント数 2〜4
         self.n_agents = n_agents
+        # 最大ステップ数
         self._max_steps = max_steps
+        # 現在のタイムステップ
         self._step_count = None
+        # 時間経過による罰
         self._step_cost = step_cost
+        # 報酬の総和
         self._total_episode_reward = None
+        # 時間経過の罰を与えるか
         self._add_clock = clock
 
+        # 行動空間（）
         self.action_space = MultiAgentActionSpace([spaces.Discrete(5) for _ in range(self.n_agents)])  # l,r,t,d,noop
 
+        # 各エージェントの初期位置
         init_agent_pos = {0: [0, 1], 1: [0, self._grid_shape[1] - 2],
                           2: [2, 1], 3: [2, self._grid_shape[1] - 2]}
+        # 各エージェントのゴール位置
         final_agent_pos = {0: [0, self._grid_shape[1] - 1], 1: [0, 0],
                            2: [2, self._grid_shape[1] - 1], 3: [2, 0]}  # they have to go in opposite direction
 
+        # 初期位置とゴール位置をリストに変換
         self.init_agent_pos, self.final_agent_pos = {}, {}
         for agent_i in range(n_agents):
             self.init_agent_pos[agent_i] = init_agent_pos[agent_i]
             self.final_agent_pos[agent_i] = final_agent_pos[agent_i]
 
+        # エージェント以外のベースとなるグリッドを生成
         self._base_grid = self.__create_grid()  # with no agents
         self._full_obs = self.__create_grid()
         self.__init_full_obs()

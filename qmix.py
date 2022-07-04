@@ -209,10 +209,10 @@ def test(envs, num_episodes, q):
 
 def main(env_name, lr, gamma, batch_size, buffer_limit, log_interval, max_episodes,
          max_epsilon, min_epsilon, test_episodes, warm_up_steps, update_iter, chunk_size,
-         update_target_interval, recurrent, video_dirname):
+         update_target_interval, recurrent, video_dirname, train_grid, test_grid):
     # create env.
-    env = Fruits(grid_mode="random")
-    test_envs = [Monitor(Fruits(grid_mode="random_test"), directory="recordings/" + video_dirname, video_callable=lambda episode_id: True, force=True) for _ in range(test_episodes)]
+    env = Fruits(grid_mode=train_grid)
+    test_envs = [Monitor(Fruits(grid_mode=test_grid), directory="recordings/" + video_dirname, video_callable=lambda episode_id: True, force=True) for _ in range(test_episodes)]
     memory = ReplayBuffer(buffer_limit)
 
     # create networks
@@ -279,10 +279,23 @@ if __name__ == "__main__":
     parser.add_argument("--no-recurrent", action="store_true", default=False)
     parser.add_argument("--max-episodes", type=int,
                         default=25000, required=False)
-    parser.add_argument("--video-dir", default="recordings")
+    parser.add_argument("--train-grid", default="random")
+    parser.add_argument("--test-grid", default="random_test")
 
     # Process arguments
     args = parser.parse_args()
+
+    video_dirname = "recordings"
+
+    if USE_WANDB:
+        import wandb
+
+        run = wandb.init(
+            project="qmix-gym",
+            entity="lighthouse117",
+            monitor_gym=True
+        )
+        video_dirname = run.id
 
     kwargs = {
         "env_name": args.env_name,
@@ -301,17 +314,12 @@ if __name__ == "__main__":
         # if not recurrent, internally, we use chunk_size of 1 and no gru cell is used.
         "chunk_size": 10,
         "recurrent": not args.no_recurrent,
-        "video_dirname": args.video_dir
+        "video_dirname": video_dirname,
+        "train_grid": args.train_grid,
+        "test_grid": args.test_grid
     }
 
     if USE_WANDB:
-        import wandb
-
-        run = wandb.init(
-            project="qmix-gym",
-            entity="lighthouse117",
-            config={"algo": "qmix", **kwargs},
-            monitor_gym=True
-        )
+        wandb.config.update({"algo": "qmix", **kwargs})
 
     main(**kwargs)
