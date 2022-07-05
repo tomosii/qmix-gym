@@ -230,7 +230,7 @@ def main(env_name, lr, gamma, batch_size, buffer_limit, log_interval, max_episod
     score = 0
     for episode_i in range(max_episodes):
         epsilon = max(min_epsilon, max_epsilon - (max_epsilon -
-                                                  min_epsilon) * (episode_i / (0.6 * max_episodes)))
+                                                  min_epsilon) * (episode_i / (0.8 * max_episodes)))
         state = env.reset()
         done = [False for _ in range(env.n_agents)]
         with torch.no_grad():
